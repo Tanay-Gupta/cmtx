@@ -66,6 +66,8 @@ class _LoginPageState extends State<LoginPage> {
         body: SafeArea(child: LayoutBuilder(
           builder: (context, constraints) {
             return SingleChildScrollView(
+               physics: const BouncingScrollPhysics(
+                          parent: AlwaysScrollableScrollPhysics()),
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Column(
                 children: [

@@ -71,6 +71,8 @@ class _SignupPageState extends State<SignupPage> {
         body: SafeArea(child: LayoutBuilder(
           builder: (context, constraints) {
             return SingleChildScrollView(
+              physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics()),
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Column(
                 children: [
@@ -187,7 +189,7 @@ class _SignupPageState extends State<SignupPage> {
                             onPressed: () {
                               if (_formKey.currentState!.validate()) {
                                 _formKey.currentState!.save();
-                                 _register(context);
+                                _register(context);
                               }
                             },
                             style: ElevatedButton.styleFrom(
@@ -212,7 +214,7 @@ class _SignupPageState extends State<SignupPage> {
                         const SizedBox(height: 16.0),
                         TextButton(
                           onPressed: () {
-                           Navigator.pushReplacementNamed(context, '/login');
+                            Navigator.pushReplacementNamed(context, '/login');
                           },
                           child: Text.rich(
                               const TextSpan(

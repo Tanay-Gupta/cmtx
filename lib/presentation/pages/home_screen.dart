@@ -107,6 +107,7 @@ class HomePage extends StatelessWidget {
         builder: (context, provider, child) {
           return Scaffold(
             backgroundColor: AppColors.backgroundColor,
+            //-----------------------------app bar--------------------------
             appBar: AppBar(
               backgroundColor: AppColors.appBarTitleAndButtonColor,
               title: const Text(
@@ -118,7 +119,18 @@ class HomePage extends StatelessWidget {
                 ),
               ),
               automaticallyImplyLeading: false,
+              actions: [
+                //-----------------------------Log out --------------------------
+                IconButton(
+                  icon: const Icon(
+                    Icons.logout,
+                    color: AppColors.backgroundColor,
+                  ),
+                  onPressed: () {},
+                ),
+              ],
             ),
+            //-----------------------------body--------------------------
             body: FutureBuilder<List<PostModel>>(
               future: ApiService().fetchComments(),
               builder: (context, snapshot) {
@@ -234,7 +246,7 @@ class CommentCard extends StatelessWidget {
                   ),
                 ),
                 //-----------------------------name and email--------------------------
-      
+
                 SizedBox(
                   width: MediaQuery.of(context).size.width * 0.65,
                   child: Column(
