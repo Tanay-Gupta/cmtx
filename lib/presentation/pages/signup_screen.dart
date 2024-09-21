@@ -15,7 +15,6 @@ class _SignupPageState extends State<SignupPage> {
   String _name = '';
   String _email = '';
   String _password = '';
-  // Firebase Auth and Firestore instances
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -213,7 +212,7 @@ class _SignupPageState extends State<SignupPage> {
                         const SizedBox(height: 16.0),
                         TextButton(
                           onPressed: () {
-                           
+                           Navigator.pushReplacementNamed(context, '/login');
                           },
                           child: Text.rich(
                               const TextSpan(
