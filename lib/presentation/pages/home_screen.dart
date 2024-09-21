@@ -4,6 +4,8 @@ import '../../infrastructure/services/api_services.dart';
 import '../../infrastructure/services/auth_services.dart';
 import '../../values/colors.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
+import 'package:lottie/lottie.dart';
+import 'package:collection/collection.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -22,6 +24,13 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         _showFullEmail = remoteConfig.getBool('show_full_email');
       });
+    });
+  }
+
+  Future<LottieComposition?> customDecoder(List<int> bytes) {
+    return LottieComposition.decodeZip(bytes, filePicker: (files) {
+      return files.firstWhereOrNull(
+          (f) => f.name.startsWith('animations/') && f.name.endsWith('.json'));
     });
   }
 
@@ -60,9 +69,17 @@ class _HomePageState extends State<HomePage> {
         future: ApiService().fetchComments(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(
+              child: Lottie.asset(
+                'assets/animations/Animation - 1726943528990.json',
+              ),
+            );
           } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            return Center(
+              child: Lottie.asset(
+                'assets/animations/Animation - 1726943830106.json',
+              ),
+            );
           } else if (snapshot.hasData) {
             List<PostModel>? comments = snapshot.data;
 
@@ -82,13 +99,17 @@ class _HomePageState extends State<HomePage> {
                     name: comment.name ?? 'No Name',
                     email: comment.email ?? 'No Email',
                     body: comment.body ?? 'No Body',
-                    showFullEmail: _showFullEmail, 
+                    showFullEmail: _showFullEmail,
                   );
                 },
               ),
             );
           } else {
-            return Center(child: Text('No comments found'));
+            return Center(
+                child: Center(
+                    child: Lottie.asset(
+              'assets/animations/Animation - 1726943830106.json',
+            )));
           }
         },
       ),

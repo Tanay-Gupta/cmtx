@@ -23,6 +23,7 @@ class MyApp extends StatelessWidget {
       value: AuthServices().user,
       initialData: null,
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,
         title: 'Flutter Firebase Auth',
         routes: {
           '/': (context) => Wrapper(),
