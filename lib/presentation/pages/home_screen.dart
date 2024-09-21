@@ -1,179 +1,95 @@
-// import 'package:flutter/material.dart';
-// import 'package:provider/provider.dart';
-// import 'package:firebase_auth/firebase_auth.dart';
-// import 'package:cloud_firestore/cloud_firestore.dart';
-// import 'package:firebase_remote_config/firebase_remote_config.dart';
-
-// class HomePage extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     return ChangeNotifierProvider(
-//       create: (_) => ShowFullEmailProvider()..initialize(),
-//       child: Scaffold(
-//         appBar: AppBar(title: Text('Home Page')),
-//         body: Center(
-//           child: Consumer<ShowFullEmailProvider>(
-//             builder: (context, provider, _) {
-//               if (provider.isLoading) {
-//                 return CircularProgressIndicator();
-//               }
-//               if (provider.user == null) {
-//                 return Text('Not logged in');
-//               }
-
-//               if (provider.errorMessage != null) {
-//                 return Text('Error: ${provider.errorMessage}');
-//               }
-
-//               final email = provider.showFullEmail
-//                   ? provider.userData['email']
-//                   : provider.maskEmail(provider.userData['email']);
-
-//               return Column(
-//                 mainAxisAlignment: MainAxisAlignment.center,
-//                 children: [
-//                   Text('User email: $email'),
-//                   Text(provider.showFullEmail
-//                       ? 'Full email is shown'
-//                       : 'Email is masked'),
-//                 ],
-//               );
-//             },
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
-
-// class ShowFullEmailProvider with ChangeNotifier {
-//   bool _showFullEmail = false;
-//   bool isLoading = true;
-//   String? errorMessage;
-//   User? user;
-//   Map<String, dynamic> userData = {};
-
-//   bool get showFullEmail => _showFullEmail;
-
-//   // Initialization of Remote Config and user-related data
-//   Future<void> initialize() async {
-//     try {
-//       // Check authentication
-//       user = FirebaseAuth.instance.currentUser;
-
-//       if (user != null) {
-//         // Fetch user data from Firestore
-//         DocumentSnapshot<Map<String, dynamic>> userDoc = await FirebaseFirestore
-//             .instance
-//             .collection('users')
-//             .doc(user!.uid)
-//             .get();
-//         userData = userDoc.data() ?? {};
-
-//         // Fetch Remote Config value
-//         final remoteConfig = FirebaseRemoteConfig.instance;
-//         await remoteConfig.setDefaults({'show_full_email': false});
-//         await remoteConfig.fetchAndActivate();
-//         _showFullEmail = remoteConfig.getBool('show_full_email');
-//       }
-//     } catch (e) {
-//       errorMessage = e.toString();
-//     } finally {
-//       isLoading = false;
-//       notifyListeners();
-//     }
-//   }
-
-//   // Mask the email if Remote Config says so
-//   String maskEmail(String email) {
-//     var emailParts = email.split('@');
-//     return emailParts[0].substring(0, 3) + '****@' + emailParts[1];
-//   }
-// }
-
-
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:provider/provider.dart';
 import '../../infrastructure/models/post_model.dart';
 import '../../infrastructure/services/api_services.dart';
 import '../../infrastructure/services/auth_services.dart';
 import '../../values/colors.dart';
+import 'package:firebase_remote_config/firebase_remote_config.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  bool _showFullEmail = false;
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    final remoteConfig = FirebaseRemoteConfig.instance;
+    remoteConfig.onConfigUpdated.listen((event) async {
+      await remoteConfig.activate();
+      setState(() {
+        _showFullEmail = remoteConfig.getBool('show_full_email');
+      });
+    });
+  }
+
   Widget build(BuildContext context) {
-     final AuthServices _auth = AuthServices();
-    return ChangeNotifierProvider(
-      create: (context) => ShowFullEmailProvider(),
-      child: Consumer<ShowFullEmailProvider>(
-        builder: (context, provider, child) {
-          return Scaffold(
-            backgroundColor: AppColors.backgroundColor,
-            //-----------------------------app bar--------------------------
-            appBar: AppBar(
-              backgroundColor: AppColors.appBarTitleAndButtonColor,
-              title: const Text(
-                'Comments',
-                style: TextStyle(
-                  color: AppColors.backgroundColor,
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              automaticallyImplyLeading: false,
-              actions: [
-                //-----------------------------Log out --------------------------
-                IconButton(
-                  icon: const Icon(
-                    Icons.logout,
-                    color: AppColors.backgroundColor,
-                  ),
-                  onPressed: () async {
-                    await _auth.signOut();
-                    Navigator.pushReplacementNamed(context, '/login');
-                  },
-                ),
-              ],
+    final AuthServices _auth = AuthServices();
+    return Scaffold(
+      backgroundColor: AppColors.backgroundColor,
+      //-----------------------------app bar--------------------------
+      appBar: AppBar(
+        backgroundColor: AppColors.appBarTitleAndButtonColor,
+        title: const Text(
+          'Comments',
+          style: TextStyle(
+            color: AppColors.backgroundColor,
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        automaticallyImplyLeading: false,
+        actions: [
+          //-----------------------------Log out --------------------------
+          IconButton(
+            icon: const Icon(
+              Icons.logout,
+              color: AppColors.backgroundColor,
             ),
-            //-----------------------------body--------------------------
-            body: FutureBuilder<List<PostModel>>(
-              future: ApiService().fetchComments(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                } else if (snapshot.hasData) {
-                  List<PostModel>? comments = snapshot.data;
+            onPressed: () async {
+              await _auth.signOut();
+              Navigator.pushReplacementNamed(context, '/login');
+            },
+          ),
+        ],
+      ),
+      //-----------------------------body--------------------------
+      body: FutureBuilder<List<PostModel>>(
+        future: ApiService().fetchComments(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (snapshot.hasData) {
+            List<PostModel>? comments = snapshot.data;
 
-                  if (comments == null || comments.isEmpty) {
-                    return const Center(child: Text('No comments found'));
-                  }
+            if (comments == null || comments.isEmpty) {
+              return const Center(child: Text('No comment found'));
+            }
 
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 20),
-                    child: ListView.builder(
-                      physics: const BouncingScrollPhysics(
-                          parent: AlwaysScrollableScrollPhysics()),
-                      itemCount: comments.length,
-                      itemBuilder: (context, index) {
-                        final comment = comments[index];
-                        return CommentCard(
-                          name: comment.name ?? 'No Name',
-                          email: comment.email ?? 'No Email',
-                          body: comment.body ?? 'No Body',
-                          showFullEmail: provider.showFullEmail,
-                        );
-                      },
-                    ),
+            return Padding(
+              padding: const EdgeInsets.only(top: 20),
+              child: ListView.builder(
+                physics: const BouncingScrollPhysics(
+                    parent: AlwaysScrollableScrollPhysics()),
+                itemCount: comments.length,
+                itemBuilder: (context, index) {
+                  final comment = comments[index];
+                  return CommentCard(
+                    name: comment.name ?? 'No Name',
+                    email: comment.email ?? 'No Email',
+                    body: comment.body ?? 'No Body',
+                    showFullEmail: _showFullEmail, 
                   );
-                } else {
-                  return Center(child: Text('No comments found'));
-                }
-              },
-            ),
-          );
+                },
+              ),
+            );
+          } else {
+            return Center(child: Text('No comments found'));
+          }
         },
       ),
     );
@@ -335,16 +251,5 @@ class CommentCard extends StatelessWidget {
             )),
       ),
     );
-  }
-}
-
-class ShowFullEmailProvider with ChangeNotifier {
-  bool _showFullEmail = false;
-
-  bool get showFullEmail => _showFullEmail;
-
-  void setShowFullEmail(bool value) {
-    _showFullEmail = value;
-    notifyListeners();
   }
 }
