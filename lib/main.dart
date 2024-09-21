@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Firebase Firestore Example',
-      initialRoute: AppRoutes.home,
+      initialRoute: AppRoutes.signup,
       routes: {
         AppRoutes.login: (context) => LoginPage(),
         AppRoutes.signup: (context) => SignupPage(),
