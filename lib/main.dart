@@ -1,6 +1,9 @@
-import 'package:cmtx/login.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+
+import 'routes.dart';
+import 'screens/login_screen.dart';
+import 'screens/signup_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,7 +16,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Firebase Firestore Example',
-      home: LoginScreen(),
+      initialRoute: AppRoutes.home,
+      routes: {
+        AppRoutes.login: (context) => LoginPage(),
+        AppRoutes.signup: (context) => SignupPage(),
+      },
+      onGenerateRoute: AppRoutes.generateRoute,
     );
   }
 }
