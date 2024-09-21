@@ -92,11 +92,11 @@
 // }
 
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../infrastructure/models/post_model.dart';
 import '../../infrastructure/services/api_services.dart';
+import '../../values/colors.dart';
 
 class HomePage extends StatelessWidget {
   @override
@@ -106,34 +106,49 @@ class HomePage extends StatelessWidget {
       child: Consumer<ShowFullEmailProvider>(
         builder: (context, provider, child) {
           return Scaffold(
+            backgroundColor: AppColors.backgroundColor,
             appBar: AppBar(
-              title: Text('Comments List'),
+              backgroundColor: AppColors.appBarTitleAndButtonColor,
+              title: const Text(
+                'Comments',
+                style: TextStyle(
+                  color: AppColors.backgroundColor,
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              automaticallyImplyLeading: false,
             ),
             body: FutureBuilder<List<PostModel>>(
               future: ApiService().fetchComments(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator());
                 } else if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
                 } else if (snapshot.hasData) {
                   List<PostModel>? comments = snapshot.data;
 
                   if (comments == null || comments.isEmpty) {
-                    return Center(child: Text('No comments found'));
+                    return const Center(child: Text('No comments found'));
                   }
 
-                  return ListView.builder(
-                    itemCount: comments.length,
-                    itemBuilder: (context, index) {
-                      final comment = comments[index];
-                      return CommentCard(
-                        name: comment.name ?? 'No Name',
-                        email: comment.email ?? 'No Email',
-                        body: comment.body ?? 'No Body',
-                        showFullEmail: provider.showFullEmail,
-                      );
-                    },
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 20),
+                    child: ListView.builder(
+                      physics: const BouncingScrollPhysics(
+                          parent: AlwaysScrollableScrollPhysics()),
+                      itemCount: comments.length,
+                      itemBuilder: (context, index) {
+                        final comment = comments[index];
+                        return CommentCard(
+                          name: comment.name ?? 'No Name',
+                          email: comment.email ?? 'No Email',
+                          body: comment.body ?? 'No Body',
+                          showFullEmail: provider.showFullEmail,
+                        );
+                      },
+                    ),
                   );
                 } else {
                   return Center(child: Text('No comments found'));
@@ -154,12 +169,12 @@ class CommentCard extends StatelessWidget {
   final bool showFullEmail;
 
   const CommentCard({
-    Key? key,
+    super.key,
     required this.name,
     required this.email,
     required this.body,
     required this.showFullEmail,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -176,36 +191,130 @@ class CommentCard extends StatelessWidget {
       }
     }
 
-    return Card(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Name: $name',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Email: ${getMaskedEmail(email)}',
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 14,
-              ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Comment: $body',
-              style: TextStyle(fontSize: 14),
-            ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Container(
+        decoration: ShapeDecoration(
+          color: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          shadows: const [
+            BoxShadow(
+              color: Color(0x0F575C8A),
+              blurRadius: 35,
+              offset: Offset(0, 10),
+              spreadRadius: 0,
+            )
           ],
         ),
+        child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                //-----------------------------first letter of name--------------------------
+                Container(
+                  width: 48.0,
+                  height: 48.0,
+                  decoration: const BoxDecoration(
+                    color: AppColors.contactIconBackgroundColor,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Text(
+                      name[0].toUpperCase(),
+                      style: const TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 18.0,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                ),
+                //-----------------------------name and email--------------------------
+      
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.65,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(left: 16.0),
+                        child: RichText(
+                          overflow: TextOverflow.ellipsis,
+                          text: TextSpan(
+                            children: [
+                              const TextSpan(
+                                text: 'Name: ',
+                                style: TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontSize: 13.0,
+                                  color: Colors.grey,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                              TextSpan(
+                                text: name,
+                                style: const TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontSize: 13.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 16.0),
+                        child: RichText(
+                          overflow: TextOverflow.ellipsis,
+                          text: TextSpan(
+                            children: [
+                              const TextSpan(
+                                text: 'Email: ',
+                                style: TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontSize: 13.0,
+                                  color: Colors.grey,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                              TextSpan(
+                                text: getMaskedEmail(email),
+                                style: const TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontSize: 13.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 16.0),
+                        child: Text(
+                          body,
+                          style: const TextStyle(
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.w500,
+                            fontSize: 13.0,
+                            color: Colors.black,
+                          ),
+                          maxLines: 4,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              ],
+            )),
       ),
     );
   }
