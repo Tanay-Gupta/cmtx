@@ -91,16 +91,19 @@
 //   }
 // }
 
+
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 import '../../infrastructure/models/post_model.dart';
 import '../../infrastructure/services/api_services.dart';
+import '../../infrastructure/services/auth_services.dart';
 import '../../values/colors.dart';
 
 class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+     final AuthServices _auth = AuthServices();
     return ChangeNotifierProvider(
       create: (context) => ShowFullEmailProvider(),
       child: Consumer<ShowFullEmailProvider>(
@@ -126,7 +129,10 @@ class HomePage extends StatelessWidget {
                     Icons.logout,
                     color: AppColors.backgroundColor,
                   ),
-                  onPressed: () {},
+                  onPressed: () async {
+                    await _auth.signOut();
+                    Navigator.pushReplacementNamed(context, '/login');
+                  },
                 ),
               ],
             ),

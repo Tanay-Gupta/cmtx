@@ -3,6 +3,8 @@ import 'package:cmtx/values/colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../infrastructure/services/auth_services.dart';
+
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
 
@@ -19,41 +21,34 @@ class _SignupPageState extends State<SignupPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // Method to register the user and store data in Firestore
-  void _register(context) async {
+  void _register(context, _auth) async {
     try {
-      UserCredential userCredential =
-          await _auth.createUserWithEmailAndPassword(
-        email: _email,
-        password: _password,
-      );
-
-      // Store user information in Firestore after successful registration
-      await _firestore.collection('users').doc(userCredential.user!.uid).set({
-        'name': _name,
-        'email': _email,
-      });
-
+      _auth.RegisterWithEmailAndPassword(_email, _password, _name);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Registration successful!')),
+        const SnackBar(
+          content: Text(
+            'Registered successfully',
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
       );
-
-      // Navigate to the home screen
-      Navigator.pushReplacementNamed(context, '/');
-    } on FirebaseAuthException catch (e) {
-      String errorMessage = 'Error occurred';
-      if (e.code == 'email-already-in-use') {
-        errorMessage = 'This email is already in use.';
-      } else if (e.code == 'weak-password') {
-        errorMessage = 'The password is too weak.';
-      }
+      Navigator.pushReplacementNamed(context, '/home');
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
+        SnackBar(
+          content: Text(e.toString()),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final AuthServices _auth = AuthServices();
     return Scaffold(
         backgroundColor: AppColors.backgroundColor,
         appBar: AppBar(
@@ -189,7 +184,7 @@ class _SignupPageState extends State<SignupPage> {
                             onPressed: () {
                               if (_formKey.currentState!.validate()) {
                                 _formKey.currentState!.save();
-                                _register(context);
+                                _register(context, _auth);
                               }
                             },
                             style: ElevatedButton.styleFrom(

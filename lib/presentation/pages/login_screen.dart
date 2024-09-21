@@ -1,7 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
+import 'package:provider/provider.dart';
+import '../../infrastructure/services/auth_services.dart';
 import '../../values/colors.dart';
 
 class LoginPage extends StatefulWidget {
@@ -15,40 +15,36 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   String _email = '';
   String _password = '';
-  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   // Method to log in the user
-  void _login(context) async {
-    if (_formKey.currentState!.validate()) {
-      try {
-        UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-          email: _email,
-          password: _password,
-        );
-
-        // Navigate to the home screen if login is successful
-        Navigator.pushReplacementNamed(context, '/');
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Login successful!')),
-        );
-      } on FirebaseAuthException catch (e) {
-        String errorMessage = 'Error occurred';
-        print(e.code);
-        if (e.code.contains('user-not-found')) {
-          errorMessage = 'No user found for that email.';
-        } else if (e.code == 'wrong-password') {
-          errorMessage = 'Wrong password provided.';
-        }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMessage)),
-        );
-      }
+  void _login(context, AuthServices _auth) async {
+    try {
+       dynamic result = await _auth.SignInWithEmailAndPassword(_email, _password);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Logged in successfully',
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      );
+      Navigator.pushReplacementNamed(context, '/home');
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+     final AuthServices _auth = AuthServices();
     return Scaffold(
         backgroundColor: AppColors.backgroundColor,
         appBar: AppBar(
@@ -66,8 +62,8 @@ class _LoginPageState extends State<LoginPage> {
         body: SafeArea(child: LayoutBuilder(
           builder: (context, constraints) {
             return SingleChildScrollView(
-               physics: const BouncingScrollPhysics(
-                          parent: AlwaysScrollableScrollPhysics()),
+              physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics()),
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Column(
                 children: [
@@ -156,7 +152,7 @@ class _LoginPageState extends State<LoginPage> {
                             onPressed: () {
                               if (_formKey.currentState!.validate()) {
                                 _formKey.currentState!.save();
-                                _login(context);
+                                _login(context, _auth);
                               }
                             },
                             style: ElevatedButton.styleFrom(
@@ -180,7 +176,9 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         const SizedBox(height: 16.0),
                         TextButton(
-                          onPressed: () {      Navigator.pushReplacementNamed(context, '/signup');},
+                          onPressed: () {
+                            Navigator.pushReplacementNamed(context, '/signup');
+                          },
                           child: Text.rich(
                               const TextSpan(
                                 text: "New here? ",
